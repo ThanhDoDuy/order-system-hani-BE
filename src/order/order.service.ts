@@ -23,7 +23,7 @@ export class OrderService {
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
   ) {}
 
-  async create(createOrderDto: Partial<Order>): Promise<Order> {
+  async create(createOrderDto: Partial<Order>, userId: string): Promise<Order> {
     const orderNumber = this.generateOrderNumber();
     const trackingCode = this.generateTrackingCode();
     
@@ -31,6 +31,7 @@ export class OrderService {
       ...createOrderDto,
       orderNumber,
       trackingCode,
+      userId,
     });
     
     const savedOrder = await order.save();
@@ -38,11 +39,12 @@ export class OrderService {
   }
 
   async findAll(
+    userId: string,
     page: number = 1,
     limit: number = 10,
     filters?: OrderFilters,
   ): Promise<OrderListResponse> {
-    const query: any = {};
+    const query: any = { userId };
 
     if (filters?.status && filters.status !== 'all') {
       query.status = filters.status;
@@ -76,24 +78,24 @@ export class OrderService {
     };
   }
 
-  async findOne(id: string): Promise<Order | null> {
-    const order = await this.orderModel.findById(id).exec();
+  async findOne(id: string, userId: string): Promise<Order | null> {
+    const order = await this.orderModel.findOne({ _id: id, userId }).exec();
     return order ? transformDocument(order) : null;
   }
 
-  async update(id: string, updateOrderDto: Partial<Order>): Promise<Order | null> {
+  async update(id: string, updateOrderDto: Partial<Order>, userId: string): Promise<Order | null> {
     const order = await this.orderModel
-      .findByIdAndUpdate(id, updateOrderDto, { new: true })
+      .findOneAndUpdate({ _id: id, userId }, updateOrderDto, { new: true })
       .exec();
     return order ? transformDocument(order) : null;
   }
 
-  async remove(id: string): Promise<boolean> {
-    const result = await this.orderModel.findByIdAndDelete(id).exec();
+  async remove(id: string, userId: string): Promise<boolean> {
+    const result = await this.orderModel.findOneAndDelete({ _id: id, userId }).exec();
     return !!result;
   }
 
-  async getStats(): Promise<{
+  async getStats(userId: string): Promise<{
     totalOrders: number;
     pendingOrders: number;
     totalRevenue: number;
@@ -101,9 +103,10 @@ export class OrderService {
     revenueTrend: number;
   }> {
     const [totalOrders, pendingOrders, totalRevenue] = await Promise.all([
-      this.orderModel.countDocuments().exec(),
-      this.orderModel.countDocuments({ status: { $in: ['new', 'preparing'] } }).exec(),
+      this.orderModel.countDocuments({ userId }).exec(),
+      this.orderModel.countDocuments({ userId, status: { $in: ['new', 'preparing'] } }).exec(),
       this.orderModel.aggregate([
+        { $match: { userId } },
         { $group: { _id: null, total: { $sum: '$total' } } }
       ]).exec(),
     ]);

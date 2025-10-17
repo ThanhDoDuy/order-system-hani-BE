@@ -60,6 +60,9 @@ export class Order {
 
   @Prop()
   notes?: string;
+
+  @Prop({ required: true })
+  userId: string;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

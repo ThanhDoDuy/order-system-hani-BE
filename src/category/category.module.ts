@@ -4,6 +4,7 @@ import { CategoryController } from './category.controller';
 import { CategoryService } from './category.service';
 import { Category, CategorySchema } from './category.schema';
 import { Product, ProductSchema } from '../product/product.schema';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { Product, ProductSchema } from '../product/product.schema';
       { name: Category.name, schema: CategorySchema },
       { name: Product.name, schema: ProductSchema },
     ]),
+    AuthModule,
   ],
   controllers: [CategoryController],
   providers: [CategoryService],

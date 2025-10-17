@@ -24,18 +24,22 @@ export class ProductService {
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
   ) {}
 
-  async create(createProductDto: Partial<Product>): Promise<Product> {
-    const product = new this.productModel(createProductDto);
+  async create(createProductDto: Partial<Product>, userId: string): Promise<Product> {
+    const product = new this.productModel({
+      ...createProductDto,
+      userId,
+    });
     const savedProduct = await product.save();
     return transformDocument(savedProduct);
   }
 
   async findAll(
+    userId: string,
     page: number = 1,
     limit: number = 10,
     filters?: ProductFilters,
   ): Promise<ProductListResponse> {
-    const query: any = {};
+    const query: any = { userId };
 
     if (filters?.category && filters.category !== 'all') {
       query.category = filters.category;
@@ -73,30 +77,30 @@ export class ProductService {
     };
   }
 
-  async findOne(id: string): Promise<Product | null> {
-    const product = await this.productModel.findById(id).exec();
+  async findOne(id: string, userId: string): Promise<Product | null> {
+    const product = await this.productModel.findOne({ _id: id, userId }).exec();
     return product ? transformDocument(product) : null;
   }
 
-  async update(id: string, updateProductDto: Partial<Product>): Promise<Product | null> {
+  async update(id: string, updateProductDto: Partial<Product>, userId: string): Promise<Product | null> {
     const product = await this.productModel
-      .findByIdAndUpdate(id, updateProductDto, { new: true })
+      .findOneAndUpdate({ _id: id, userId }, updateProductDto, { new: true })
       .exec();
     return product ? transformDocument(product) : null;
   }
 
-  async remove(id: string): Promise<boolean> {
-    const result = await this.productModel.findByIdAndDelete(id).exec();
+  async remove(id: string, userId: string): Promise<boolean> {
+    const result = await this.productModel.findOneAndDelete({ _id: id, userId }).exec();
     return !!result;
   }
 
-  async getStats(): Promise<{ totalProducts: number }> {
-    const totalProducts = await this.productModel.countDocuments().exec();
+  async getStats(userId: string): Promise<{ totalProducts: number }> {
+    const totalProducts = await this.productModel.countDocuments({ userId }).exec();
     return { totalProducts };
   }
 
-  async getCategories(): Promise<string[]> {
-    const categories = await this.productModel.distinct('category').exec();
+  async getCategories(userId: string): Promise<string[]> {
+    const categories = await this.productModel.distinct('category', { userId }).exec();
     return categories;
   }
 }

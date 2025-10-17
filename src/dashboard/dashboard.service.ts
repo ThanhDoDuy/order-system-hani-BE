@@ -18,10 +18,10 @@ export class DashboardService {
     private readonly productService: ProductService,
   ) {}
 
-  async getDashboardStats(): Promise<DashboardStats> {
+  async getDashboardStats(userId: string): Promise<DashboardStats> {
     const [orderStats, productStats] = await Promise.all([
-      this.orderService.getStats(),
-      this.productService.getStats(),
+      this.orderService.getStats(userId),
+      this.productService.getStats(userId),
     ]);
 
     return {

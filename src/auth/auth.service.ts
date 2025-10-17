@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
-import { User } from '../user/user.schema';
 import { OAuth2Client } from 'google-auth-library';
 
 @Injectable()
@@ -53,7 +52,9 @@ export class AuthService {
       googleId: user.googleId
     };
 
-    const accessToken = this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: '1h',
+    });
     const refreshToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_REFRESH_SECRET,
       expiresIn: '7d',
@@ -88,7 +89,9 @@ export class AuthService {
         googleId: user.googleId
       };
 
-      const newAccessToken = this.jwtService.sign(newPayload);
+      const newAccessToken = this.jwtService.sign(newPayload, {
+        expiresIn: '1h',
+      });
       const newRefreshToken = this.jwtService.sign(newPayload, {
         secret: process.env.JWT_REFRESH_SECRET,
         expiresIn: '7d',

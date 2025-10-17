@@ -6,49 +6,45 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
-import { Category } from './category.schema';
+import type { Category } from './category.schema';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { GetCurrentUser, type CurrentUser } from '../auth/current-user.decorator';
 
 @Controller('categories')
+@UseGuards(JwtAuthGuard)
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Post()
-  create(@Body() createCategoryDto: Partial<Category>) {
-    console.log('🏷️ [CATEGORIES] Create category request received');
-    console.log('📦 [CATEGORIES] Request body:', createCategoryDto);
-    return this.categoryService.create(createCategoryDto);
+  create(@Body() createCategoryDto: Partial<Category>, @GetCurrentUser() user: CurrentUser) {
+    return this.categoryService.create(createCategoryDto, user.id);
   }
 
   @Get()
-  findAll() {
-    console.log('🏷️ [CATEGORIES] Get all categories request received');
-    return this.categoryService.findAll();
+  findAll(@GetCurrentUser() user: CurrentUser) {
+    return this.categoryService.findAll(user.id);
   }
 
   @Get('stats')
-  getStats() {
-    console.log('📊 [CATEGORIES] Get stats request received');
-    return this.categoryService.getStats();
+  getStats(@GetCurrentUser() user: CurrentUser) {
+    return this.categoryService.getStats(user.id);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    console.log('🔍 [CATEGORIES] Get category by ID request received:', id);
-    return this.categoryService.findOne(id);
+  findOne(@Param('id') id: string, @GetCurrentUser() user: CurrentUser) {
+    return this.categoryService.findOne(id, user.id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCategoryDto: Partial<Category>) {
-    console.log('✏️ [CATEGORIES] Update category request received:', id);
-    console.log('📦 [CATEGORIES] Update data:', updateCategoryDto);
-    return this.categoryService.update(id, updateCategoryDto);
+  update(@Param('id') id: string, @Body() updateCategoryDto: Partial<Category>, @GetCurrentUser() user: CurrentUser) {
+    return this.categoryService.update(id, updateCategoryDto, user.id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    console.log('🗑️ [CATEGORIES] Delete category request received:', id);
-    return this.categoryService.remove(id);
+  remove(@Param('id') id: string, @GetCurrentUser() user: CurrentUser) {
+    return this.categoryService.remove(id, user.id);
   }
 }

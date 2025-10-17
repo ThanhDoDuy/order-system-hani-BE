@@ -31,13 +31,13 @@ export class Product {
   description?: string;
 
   @Prop()
-  sku?: string;
-
-  @Prop()
   weight?: number;
 
   @Prop()
   dimensions?: string;
+
+  @Prop({ required: true })
+  userId: string;
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);

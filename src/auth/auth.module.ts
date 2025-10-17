@@ -5,6 +5,7 @@ import { UserModule } from '../user/user.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { GoogleStrategy } from './google.strategy';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Module({
   imports: [
@@ -12,11 +13,11 @@ import { GoogleStrategy } from './google.strategy';
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-here',
-      signOptions: { expiresIn: '15m' },
+      signOptions: { expiresIn: '40m' },
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy],
-  exports: [AuthService],
+  providers: [AuthService, GoogleStrategy, JwtAuthGuard],
+  exports: [AuthService, JwtAuthGuard, JwtModule],
 })
 export class AuthModule {}

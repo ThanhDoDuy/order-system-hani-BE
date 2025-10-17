@@ -9,21 +9,26 @@ import {
   Query,
   ParseIntPipe,
   DefaultValuePipe,
+  UseGuards,
 } from '@nestjs/common';
 import { ProductService, ProductFilters } from './product.service';
-import { Product } from './product.schema';
+import type { Product } from './product.schema';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { GetCurrentUser, type CurrentUser } from '../auth/current-user.decorator';
 
 @Controller('products')
+@UseGuards(JwtAuthGuard)
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Post()
-  create(@Body() createProductDto: Partial<Product>) {
-    return this.productService.create(createProductDto);
+  create(@Body() createProductDto: Partial<Product>, @GetCurrentUser() user: CurrentUser) {
+    return this.productService.create(createProductDto, user.id);
   }
 
   @Get()
   findAll(
+    @GetCurrentUser() user: CurrentUser,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Query('category') category?: string,
@@ -35,31 +40,31 @@ export class ProductController {
     if (status) filters.status = status;
     if (search) filters.search = search;
     
-    return this.productService.findAll(page, limit, filters);
+    return this.productService.findAll(user.id, page, limit, filters);
   }
 
   @Get('categories')
-  getCategories() {
-    return this.productService.getCategories();
+  getCategories(@GetCurrentUser() user: CurrentUser) {
+    return this.productService.getCategories(user.id);
   }
 
   @Get('stats')
-  getStats() {
-    return this.productService.getStats();
+  getStats(@GetCurrentUser() user: CurrentUser) {
+    return this.productService.getStats(user.id);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.productService.findOne(id);
+  findOne(@Param('id') id: string, @GetCurrentUser() user: CurrentUser) {
+    return this.productService.findOne(id, user.id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductDto: Partial<Product>) {
-    return this.productService.update(id, updateProductDto);
+  update(@Param('id') id: string, @Body() updateProductDto: Partial<Product>, @GetCurrentUser() user: CurrentUser) {
+    return this.productService.update(id, updateProductDto, user.id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productService.remove(id);
+  remove(@Param('id') id: string, @GetCurrentUser() user: CurrentUser) {
+    return this.productService.remove(id, user.id);
   }
 }
