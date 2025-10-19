@@ -38,6 +38,7 @@ export class Order {
     productId: { type: String, required: true },
     productName: { type: String, required: true },
     productPrice: { type: Number, required: true },
+    priceType: { type: String, required: true, enum: ['wholesale', 'retail'] },
     quantity: { type: Number, required: true },
     subtotal: { type: Number, required: true }
   }], default: [] })
@@ -45,6 +46,7 @@ export class Order {
     productId: string;
     productName: string;
     productPrice: number;
+    priceType: 'wholesale' | 'retail';
     quantity: number;
     subtotal: number;
   }>;
@@ -66,3 +68,13 @@ export class Order {
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
+
+// Transform _id to id
+OrderSchema.set('toJSON', {
+  transform: function(doc, ret: any) {
+    ret.id = ret._id;
+    delete ret._id;
+    delete ret.__v;
+    return ret;
+  }
+});

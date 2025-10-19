@@ -18,8 +18,6 @@ export class LoggerMiddleware implements NestMiddleware {
       if (body.idToken) body.idToken = '***hidden***';
       if (body.refreshToken) body.refreshToken = '***hidden***';
       if (body.accessToken) body.accessToken = '***hidden***';
-      
-      console.log(`📦 [REQUEST BODY]`, body);
     }
     
     // Log response status when request finishes

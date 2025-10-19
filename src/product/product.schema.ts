@@ -8,8 +8,14 @@ export class Product {
   @Prop({ required: true })
   name: string;
 
-  @Prop({ required: true })
-  price: number;
+  @Prop({ required: false })
+  wholesalePrice?: number; // Giá bán sỉ
+
+  @Prop({ required: false })
+  retailPrice?: number; // Giá bán lẻ
+
+  @Prop({ required: false })
+  price?: number; // Giá cũ (for backward compatibility)
 
   @Prop({ required: true, default: 0 })
   stock: number;
@@ -41,3 +47,13 @@ export class Product {
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);
+
+// Transform _id to id
+ProductSchema.set('toJSON', {
+  transform: function(doc, ret: any) {
+    ret.id = ret._id;
+    delete ret._id;
+    delete ret.__v;
+    return ret;
+  }
+});
