@@ -9,6 +9,7 @@ import { OrderModule } from './order/order.module';
 import { ProductModule } from './product/product.module';
 import { CategoryModule } from './category/category.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { RoleModule } from './role/role.module';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 
 @Module({
@@ -23,6 +24,7 @@ import { LoggerMiddleware } from './middleware/logger.middleware';
     ProductModule,
     CategoryModule,
     DashboardModule,
+    RoleModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,9 +1,14 @@
-import { Controller, Post, Body, HttpException, HttpStatus, Get, Query } from '@nestjs/common';
+import { Controller, Post, Body, HttpException, HttpStatus, Get, Query, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './jwt-auth.guard';
+import { UserService } from '../user/user.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private userService: UserService,
+  ) {}
 
   @Post('google')
   async googleLogin(@Body() body: { idToken: string }) {
@@ -68,5 +73,42 @@ export class AuthController {
       success: true,
       data: { authUrl }
     };
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async getCurrentUser(@Request() req: any) {
+    try {
+      // Get user from JWT payload (set by JwtAuthGuard)
+      const jwtUser = req.user;
+      if (!jwtUser) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+
+      // Get full user data from database
+      const user = await this.userService.findById(jwtUser.id);
+      if (!user) {
+        throw new HttpException('User not found in database', HttpStatus.NOT_FOUND);
+      }
+
+      return {
+        success: true,
+        data: {
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            picture: user.picture,
+            role: user.role,
+            status: user.status,
+          }
+        }
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Failed to get user info',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }
